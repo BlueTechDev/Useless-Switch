@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Useless Switch</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -67,7 +68,7 @@
       to { background-color: #111; }
     }
 
-    #resetButton, #fakeWinButton {
+    #resetButton, #fakeWinButton, #giveUpButton {
       margin-top: 20px;
       padding: 10px 20px;
       font-size: 1rem;
@@ -119,6 +120,28 @@
       color: white;
       cursor: pointer;
     }
+
+    #clownScreen {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: #ff69b4;
+      color: #fff;
+      font-size: 2rem;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 10000;
+      font-weight: bold;
+      animation: honk 0.3s infinite alternate;
+    }
+
+    @keyframes honk {
+      0% { transform: rotate(-1deg); }
+      100% { transform: rotate(1deg); }
+    }
   </style>
 </head>
 <body>
@@ -127,6 +150,7 @@
     <div class="message" id="message">Go ahead, try it...</div>
     <button id="resetButton">Reset Game</button>
     <button id="fakeWinButton">Click to Win!</button>
+    <button id="giveUpButton">Screw This</button>
   </div>
   <div id="bsod">
     A problem has been detected and your effort has been terminated.<br><br>
@@ -137,14 +161,19 @@
     <div id="chatbotMessage">Looks like you're trying to win. Let me help...</div>
     <button onclick="hideChatbot()">Thanks, go away</button>
   </div>
+  <div id="clownScreen">
+    🤡🎪 You gave up. Honk honk. 🎪🤡
+  </div>
   <script>
     const switchEl = document.getElementById('uselessSwitch');
     const messageEl = document.getElementById('message');
     const resetButton = document.getElementById('resetButton');
     const fakeWinButton = document.getElementById('fakeWinButton');
+    const giveUpButton = document.getElementById('giveUpButton');
     const bsodEl = document.getElementById('bsod');
     const chatbot = document.getElementById('chatbot');
     const chatbotMessage = document.getElementById('chatbotMessage');
+    const clownScreen = document.getElementById('clownScreen');
 
     let attemptCount = 0;
     let holdTimer = null;
@@ -222,7 +251,7 @@
         playSound('boing.mp3');
       } else if (attemptCount === 25) {
         messageEl.textContent = "Still going?";
-        playSound('clown_laugh.mp3');
+        playSound('clown_horn.mp3');
       } else if (attemptCount === 30) {
         fakeWinButton.style.display = 'inline-block';
         moveFakeWinButton();
@@ -241,6 +270,10 @@
         } else {
           messageEl.textContent = `Nice try. Attempts: ${attemptCount}`;
         }
+      }
+
+      if (attemptCount >= 10 && !defeated) {
+        giveUpButton.style.display = 'inline-block';
       }
 
       setTimeout(() => {
@@ -262,8 +295,33 @@
       document.body.style.color = '#fff';
       switchEl.classList.remove('on');
       resetButton.style.display = 'none';
+      giveUpButton.style.display = 'none';
       fakeWinButton.style.display = 'none';
       bsodEl.style.display = 'none';
+      clownScreen.style.display = 'none';
+    });
+
+    giveUpButton.addEventListener('click', () => {
+      if (window.innerWidth <= 768) {
+        // Mobile torture: clown dance
+        clownScreen.style.display = 'flex';
+        setTimeout(() => {
+          clownScreen.style.display = 'none';
+        }, 10000);
+      } else {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const date = new Date().toLocaleString();
+
+        doc.setFontSize(22);
+        doc.text("Certificate of Glorious Defeat", 20, 40);
+        doc.setFontSize(14);
+        doc.text(`You gave up after just ${attemptCount} attempts.`, 20, 60);
+        doc.text(`Issued on: ${date}`, 20, 70);
+        doc.text("🥇", 20, 90);
+
+        doc.save("useless_defeat_certificate.pdf");
+      }
     });
 
     function confetti() {
@@ -281,11 +339,10 @@
     }
 
     function scheduleChatbot() {
-      const randomTime = Math.random() * 15000 + 5000; // 5–20s interval
+      const randomTime = Math.random() * 15000 + 5000;
       setTimeout(showChatbot, randomTime);
     }
 
-    // Begin chatbot cycle
     scheduleChatbot();
   </script>
 </body>
