@@ -1,0 +1,52 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    background-color: #111;
+    color:white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    transistion: background-color 0.5s;
+}
+
+.container {
+    text-align:center;
+}
+
+.switch { 
+    postion:relative;
+    width:80px;
+    height:40px;
+    background-color: #444;
+    border-radius: 20px;
+    cursor: pointer;
+    margin: 0 auto 20px;
+}
+
+.switch:before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 32px;
+    height: 32px;
+    background-color: #fff;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.switch.on {
+    background-color: #ccc;
+}
+
+.switch.on:before {
+    left: 44px;
+}
+
+.message {
+    font-size: 1.2rem;
+    margin-top: 10px;
+    opacity: 0.7;;
+}
