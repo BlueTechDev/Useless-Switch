@@ -17,10 +17,12 @@
       align-items: center;
       height: 100vh;
       transition: background-color 0.5s, color 0.5s;
+      overflow: hidden;
     }
 
     .container {
       text-align: center;
+      position: relative;
     }
 
     .switch {
@@ -31,6 +33,7 @@
       border-radius: 20px;
       margin: 0 auto 20px;
       cursor: pointer;
+      z-index: 2;
     }
 
     .switch::before {
@@ -150,7 +153,7 @@
     <div class="message" id="message">Go ahead, try it...</div>
     <button id="resetButton">Reset Game</button>
     <button id="fakeWinButton">Click to Win!</button>
-    <button id="giveUpButton">I am done!!</button>
+    <button id="giveUpButton">Screw This</button>
   </div>
   <div id="bsod">
     A problem has been detected and your effort has been terminated.<br><br>
@@ -180,6 +183,8 @@
     let Reset = null;
     let defeated = false;
     let locked = false;
+    let level = 1;
+    let holdDurations = { 1: 5000, 2: 7000, 3: 10000 };
 
     const trollMessages = [
       "That would’ve worked yesterday.",
@@ -209,26 +214,39 @@
       fakeWinButton.style.top = `${y}px`;
     }
 
+    function moveSwitchRandomly() {
+      const x = Math.random() * (window.innerWidth - 100);
+      const y = Math.random() * (window.innerHeight - 100);
+      switchEl.style.position = 'absolute';
+      switchEl.style.left = `${x}px`;
+      switchEl.style.top = `${y}px`;
+    }
+
     switchEl.addEventListener('mousedown', () => {
       if (defeated || locked) return;
       locked = true;
-
       switchEl.classList.add('on');
       document.body.style.backgroundColor = '#f0f0f0';
       document.body.style.color = '#000';
 
       holdTimer = setTimeout(() => {
+        if (level === 1) {
+          messageEl.textContent = "You beat the useless machine. But at what cost?";
+          level = 2;
+        } else if (level === 2) {
+          messageEl.textContent = "You won again... or did you?";
+          level = 3;
+        } else if (level === 3) {
+          messageEl.textContent = "Okay fine, you win this round.";
+        }
+
         defeated = true;
-        messageEl.textContent = "You beat the useless machine. But at what cost?";
-        document.body.style.backgroundColor = '#fdf6e3';
-        document.body.style.color = '#000';
         resetButton.style.display = 'inline-block';
-        confetti();
         setTimeout(() => {
-          messageEl.textContent = "Just kidding. Start over.";
+          messageEl.textContent = "Just kidding. Next level unlocked.";
           resetButton.click();
         }, 3000);
-      }, 5000);
+      }, holdDurations[level]);
 
       Reset = setTimeout(() => {
         if (!defeated) {
@@ -237,7 +255,7 @@
           document.body.style.color = '#fff';
           locked = false;
         }
-      }, 5000);
+      }, holdDurations[level]);
     });
 
     switchEl.addEventListener('mouseup', () => {
@@ -246,41 +264,21 @@
       clearTimeout(Reset);
       attemptCount++;
 
-      if (attemptCount === 10) {
-        messageEl.textContent = "You okay?";
-        playSound('boing.mp3');
-      } else if (attemptCount === 25) {
-        messageEl.textContent = "Still going?";
-        playSound('clown_horn.mp3');
-      } else if (attemptCount === 30) {
-        fakeWinButton.style.display = 'inline-block';
-        moveFakeWinButton();
-        messageEl.textContent = "Finally, a win button!";
-      } else if (attemptCount === 50) {
-        messageEl.textContent = "Why are you like this?";
-        document.body.classList.add('rage');
-        playSound('windows_error.mp3');
-        setTimeout(() => document.body.classList.remove('rage'), 1000);
-      } else if (attemptCount === 100) {
-        bsodEl.style.display = 'block';
-        setTimeout(() => location.reload(), 5000);
-      } else {
-        if (Math.random() < 0.25) {
-          messageEl.textContent = trollMessages[Math.floor(Math.random() * trollMessages.length)];
-        } else {
-          messageEl.textContent = `Nice try. Attempts: ${attemptCount}`;
-        }
-      }
+      if (attemptCount === 10) messageEl.textContent = "You okay?", playSound('boing.mp3');
+      else if (attemptCount === 25) messageEl.textContent = "Still going?", playSound('clown_horn.mp3');
+      else if (attemptCount === 30) fakeWinButton.style.display = 'inline-block', moveFakeWinButton(), messageEl.textContent = "Finally, a win button!";
+      else if (attemptCount === 50) messageEl.textContent = "Why are you like this?", document.body.classList.add('rage'), playSound('windows_error.mp3'), setTimeout(() => document.body.classList.remove('rage'), 1000);
+      else if (attemptCount === 100) bsodEl.style.display = 'block', setTimeout(() => location.reload(), 5000);
+      else messageEl.textContent = Math.random() < 0.25 ? trollMessages[Math.floor(Math.random() * trollMessages.length)] : `Nice try. Attempts: ${attemptCount}`;
 
-      if (attemptCount >= 10 && !defeated) {
-        giveUpButton.style.display = 'inline-block';
-      }
+      if (attemptCount >= 10 && !defeated) giveUpButton.style.display = 'inline-block';
 
       setTimeout(() => {
         switchEl.classList.remove('on');
         document.body.style.backgroundColor = '#111';
         document.body.style.color = '#fff';
         locked = false;
+        if (level === 3) moveSwitchRandomly();
       }, 1000 + Math.random() * 2000);
     });
 
@@ -290,7 +288,7 @@
       attemptCount = 0;
       defeated = false;
       locked = false;
-      messageEl.textContent = "Go ahead, try it...";
+      messageEl.textContent = `Level ${level}: Go ahead, try it...`;
       document.body.style.backgroundColor = '#111';
       document.body.style.color = '#fff';
       switchEl.classList.remove('on');
@@ -303,23 +301,18 @@
 
     giveUpButton.addEventListener('click', () => {
       if (window.innerWidth <= 768) {
-        // Mobile torture: clown dance
         clownScreen.style.display = 'flex';
-        setTimeout(() => {
-          clownScreen.style.display = 'none';
-        }, 10000);
+        setTimeout(() => clownScreen.style.display = 'none', 10000);
       } else {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const date = new Date().toLocaleString();
-
         doc.setFontSize(22);
         doc.text("Certificate of Glorious Defeat", 20, 40);
         doc.setFontSize(14);
         doc.text(`You gave up after just ${attemptCount} attempts.`, 20, 60);
         doc.text(`Issued on: ${date}`, 20, 70);
         doc.text("🥇", 20, 90);
-
         doc.save("useless_defeat_certificate.pdf");
       }
     });
