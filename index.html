@@ -5,11 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Switch Trials</title>
   <style>
-    /* ... styles unchanged ... */
+    .switch {
+      position: relative;
+      width: 100px;
+      height: 50px;
+      background: #444;
+      border-radius: 25px;
+      margin: 20px auto;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      transition: transform 0.2s;
+    }
+    .switch.on {
+      background: #ccc;
+    }
+    .switch::before {
+      content: "";
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 50%;
+      transition: left 0.3s;
+    }
+    .switch.on::before {
+      left: 55px;
+    }
+    .message {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .button {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
-  <!-- ... HTML unchanged ... -->
+  <div id="menu">
+    <h1 style="text-align:center;">The Switch Trials</h1>
+    <div style="text-align:center;">
+      <button class="button" onclick="startGame()">New Game</button>
+    </div>
+  </div>
+
+  <div id="game" style="display:none;">
+    <div id="levelDisplay" style="text-align:center; margin-top:20px;">Level 1</div>
+    <div id="switch1" class="switch"></div>
+    <div id="switch2" class="switch" style="display: none;"></div>
+    <div id="message" class="message">Go ahead, try it...</div>
+    <button id="resetButton" class="button" style="display:none;">Reset Game</button>
+  </div>
+
   <script>
     const switch1 = document.getElementById('switch1');
     const switch2 = document.getElementById('switch2');
