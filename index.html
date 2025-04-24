@@ -85,126 +85,52 @@
   <div class="container" id="game" style="display:none;">
     <div id="levelDisplay" style="margin-top:20px;">Level 1</div>
     <div id="switch1" class="switch"></div>
-    <div id="switch2" class="switch" style="display: none;"></div>
     <div id="message" class="message">Go ahead, try it...</div>
     <button id="resetButton" class="button" style="display:none;">Reset Game</button>
   </div>
 
   <script>
     const switch1 = document.getElementById('switch1');
-    const switch2 = document.getElementById('switch2');
     const messageEl = document.getElementById('message');
     const resetButton = document.getElementById('resetButton');
     const levelDisplay = document.getElementById('levelDisplay');
     const menu = document.getElementById('menu');
     const game = document.getElementById('game');
 
-    let level = 1;
     let defeated = false;
     let holdTimer = null;
-    let level2Timeout = null;
-    let currentHoldTime = 0;
-    let correctSwitch = 1;
-    let level2Passed = false; // Track if user passed level 2 properly
 
     function updateLevelDisplay() {
-      levelDisplay.textContent = `Level ${level}`;
+      levelDisplay.textContent = `Level 1`;
     }
 
-    function resetGame(targetLevel = 1) {
-      // Clear all timers and reset state for the specified level
+    function resetGame() {
       clearTimeout(holdTimer);
-      clearTimeout(level2Timeout);
       defeated = false;
-      level2Passed = false;
-      currentHoldTime = 0;
-      level = targetLevel;
-      updateLevelDisplay();
       switch1.classList.remove('on');
-      switch2.classList.remove('on');
-      switch1.style.display = 'block';
-      switch2.style.display = (level === 3) ? 'block' : 'none';
-      correctSwitch = Math.random() < 0.5 ? 1 : 2;
-      messageEl.textContent = level === 4 ? "Level 4 coming soon." : "Go ahead, try it...";
+      messageEl.textContent = "Go ahead, try it...";
       resetButton.style.display = 'none';
     }
 
     function startGame() {
       menu.style.display = 'none';
       game.style.display = 'block';
-      resetGame(1);
+      resetGame();
     }
 
-    // Core game logic handler depending on level and switch pressed
-    function handleSwitchPress(switchNumber) {
-      if (defeated) return;
-
-      // === Level 1: Classic ===
-      // User must hold for 5 seconds without letting go to win
-      if (level === 1) {
-        holdTimer = setTimeout(() => {
-          defeated = true;
-          messageEl.textContent = "You beat the useless machine. But at what cost?";
-          resetButton.style.display = 'inline-block';
-          setTimeout(() => {
-            resetGame(2);
-          }, 2000);
-        }, 5000);
-
-      // === Level 2: The Patience Trap ===
-      // User must not touch the switch for 4 seconds
-      } else if (level === 2) {
-        level2Timeout = setTimeout(() => {
-          level2Passed = true; // Set flag if timeout completed
-          defeated = true;
-          messageEl.textContent = "Well done. You resisted.";
-          resetButton.style.display = 'inline-block';
-          setTimeout(() => {
-            resetGame(3);
-          }, 2000);
-        }, 4000);
-
-      // === Level 3: The Twin Switches ===
-      // Two identical switches are shown; only one is randomly correct
-      } else if (level === 3) {
-        if (switchNumber !== correctSwitch) {
-          messageEl.textContent = "Wrong switch. Back to Level 2.";
-          setTimeout(() => resetGame(2), 1500);
-        } else {
-          holdTimer = setTimeout(() => {
-            defeated = true;
-            messageEl.textContent = "You found the right one!";
-            resetButton.style.display = 'inline-block';
-            setTimeout(() => {
-              resetGame(4);
-            }, 2000);
-          }, 3000);
-        }
-      }
-    }
-
-    // Switch 1 behavior
+    // Core Level 1 logic
     switch1.addEventListener('mousedown', () => switch1.classList.add('on'));
     switch1.addEventListener('mouseup', () => {
       switch1.classList.remove('on');
-      // Level 2: If user presses early, cancel timeout and reset to Level 1
-      if (level === 2 && !defeated && !level2Passed) {
-        messageEl.textContent = "Too impatient. Back to Level 1.";
-        clearTimeout(level2Timeout);
-        setTimeout(() => resetGame(1), 1500);
-        return;
-      }
-      handleSwitchPress(1);
+      if (defeated) return;
+      holdTimer = setTimeout(() => {
+        defeated = true;
+        messageEl.textContent = "You beat the useless machine. But at what cost?";
+        resetButton.style.display = 'inline-block';
+      }, 5000);
     });
 
-    // Switch 2 behavior (used in Level 3 only)
-    switch2.addEventListener('mousedown', () => switch2.classList.add('on'));
-    switch2.addEventListener('mouseup', () => {
-      switch2.classList.remove('on');
-      handleSwitchPress(2);
-    });
-
-    resetButton.addEventListener('click', () => resetGame(level));
+    resetButton.addEventListener('click', () => resetGame());
     updateLevelDisplay();
   </script>
 </body>
