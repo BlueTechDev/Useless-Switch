@@ -33,11 +33,6 @@ function resetGame() {
   updateLevelDisplay();
 }
 
-function startGame() {
-  menu.style.display = 'none';
-  game.style.display = 'block';
-  resetGame();
-}
 
 // Switch behavior (shared logic)
 function handleSwitchPress(switchNumber) {
@@ -86,5 +81,4 @@ switch2.addEventListener('mouseup', () => {
 
 resetButton.addEventListener('click', () => resetGame());
 updateLevelDisplay();
-
 });
