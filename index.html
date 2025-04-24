@@ -168,6 +168,8 @@
 
     function handleSwitchPress(switchNumber) {
       if (defeated) return;
+
+      // Level 1: Hold for 5 seconds to win
       if (level === 1) {
         holdTimer = setTimeout(() => {
           defeated = true;
@@ -178,7 +180,9 @@
           }, 2000);
         }, 5000);
 
+      // Level 2: Must not press for 4 seconds to pass
       } else if (level === 2) {
+        // Start timeout that resolves only if user doesn't click again
         level2Timeout = setTimeout(() => {
           defeated = true;
           messageEl.textContent = "Well done. You resisted.";
@@ -188,6 +192,7 @@
           }, 2000);
         }, 4000);
 
+      // Level 3: Two switches, only one is correct, picked randomly each time
       } else if (level === 3) {
         if (switchNumber !== correctSwitch) {
           messageEl.textContent = "Wrong switch. Back to Level 2.";
@@ -205,9 +210,11 @@
       }
     }
 
+    // Switch 1 behavior
     switch1.addEventListener('mousedown', () => switch1.classList.add('on'));
     switch1.addEventListener('mouseup', () => {
       switch1.classList.remove('on');
+      // Level 2: If user presses early, cancel timeout and reset
       if (level === 2 && !defeated) {
         messageEl.textContent = "Too impatient. Back to Level 1.";
         clearTimeout(level2Timeout);
@@ -216,6 +223,7 @@
       handleSwitchPress(1);
     });
 
+    // Switch 2 behavior (used in Level 3 only)
     switch2.addEventListener('mousedown', () => switch2.classList.add('on'));
     switch2.addEventListener('mouseup', () => {
       switch2.classList.remove('on');
