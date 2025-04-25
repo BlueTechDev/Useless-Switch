@@ -125,102 +125,110 @@
     const resetButton = document.getElementById('resetButton');
     const chatbot = document.getElementById('chatbot');
     const bsod = document.getElementById('bsod');
-
+  
     let defeated = false;
-    let holdTimer = null;
     let clickCount = 0;
-
-    const chatbotLines = [
-      "Still at it, huh?",
-      "You sure this is a good use of time?",
-      "The switch isn't going to love you back.",
-      "There is no reward.",
-      "Give up. You won't win.",
-      "Click click click... satisfied?",
-      "Just 94 more to go!"
-    ];
-
-    const trollMessages = [
-      "Almost... not really.",
-      "That would've worked yesterday.",
-      "Try flipping your monitor.",
-      "You just unlocked... nothing!",
-      "Still going?"
-    ];
-
-    function resetGame() {
+    let holdStartTime = null;
+    let currentLevel = 1;
+  
+    const chatbotLines = [/* same as before */];
+    const trollMessages = [/* same as before */];
+  
+    function resetGame(targetLevel = 1) {
       clearTimeout(holdTimer);
       defeated = false;
       clickCount = 0;
+      holdStartTime = null;
+      currentLevel = targetLevel;
       switch1.classList.remove('on');
       messageEl.textContent = "Go ahead, try it...";
       resetButton.style.display = 'none';
+      document.body.style.backgroundColor = '#111';
+      document.body.style.color = '#fff';
     }
-
+  
     function chatbotTaunt() {
       const line = chatbotLines[Math.floor(Math.random() * chatbotLines.length)];
       chatbot.textContent = `🤖 ${line}`;
     }
-
-    function showRiddle() {
-  const answer = prompt("What came first: the chicken or the egg?");
-  if (!answer) return;
-  if (answer.trim().toLowerCase() === "chicken") {
-    defeated = true;
-    messageEl.textContent = "You beat the useless machine. But at what cost?";
-    resetButton.style.display = 'inline-block';
-  } else {
-    messageEl.textContent = "Wrong answer. Try again.";
-    // 💡 Reset theme to dark mode
-    document.body.style.backgroundColor = '#111';
-    document.body.style.color = '#fff';
-  }
-}
-
-
-    switch1.addEventListener('mousedown', () => {
-  if (defeated) return;
-  switch1.classList.add('on');
-  document.body.style.backgroundColor = '#f0f0f0';
-  document.body.style.color = '#111';
-
-  holdTimer = setTimeout(() => {
-    showRiddle();
-  }, 5000);
-});
-
-switch1.addEventListener('mouseup', () => {
-  switch1.classList.remove('on');
-  document.body.style.backgroundColor = '#111';
-  document.body.style.color = '#fff';
-  clearTimeout(holdTimer);
   
-  if (defeated) return;
-
-  clickCount++;
-  chatbotTaunt();
-
-  if (clickCount >= 100) {
-    bsod.style.display = 'block';
-    setTimeout(() => location.reload(), 5000);
-    return;
-  }
-
-  if (clickCount === 10) {
-    messageEl.textContent = "You okay?";
-  } else if (clickCount === 25) {
-    messageEl.textContent = "Still going?";
-  } else if (clickCount === 50) {
-    messageEl.textContent = "Why are you like this?";
-  } else if (Math.random() < 0.25) {
-    messageEl.textContent = trollMessages[Math.floor(Math.random() * trollMessages.length)];
-  } else {
-    messageEl.textContent = `Attempts: ${clickCount}`;
-  }
-});
-
-
-    resetButton.addEventListener('click', resetGame);
+    function showRiddle() {
+      const answer = prompt("What came first: the chicken or the egg?");
+      if (!answer) return;
+      if (answer.trim().toLowerCase() === "chicken") {
+        messageEl.textContent = "Correct. Welcome to Level 2.";
+        currentLevel = 2;
+        resetButton.style.display = 'inline-block';
+      } else {
+        messageEl.textContent = "Wrong answer. Try again.";
+        document.body.style.backgroundColor = '#111';
+        document.body.style.color = '#fff';
+      }
+    }
+  
+    // Switch logic
+    switch1.addEventListener('mousedown', () => {
+      if (defeated) return;
+  
+      switch1.classList.add('on');
+      document.body.style.backgroundColor = '#f0f0f0';
+      document.body.style.color = '#111';
+  
+      holdStartTime = Date.now();
+  
+      if (currentLevel === 1) {
+        holdTimer = setTimeout(() => {
+          showRiddle();
+        }, 5000);
+      }
+    });
+  
+    switch1.addEventListener('mouseup', () => {
+      switch1.classList.remove('on');
+      document.body.style.backgroundColor = '#111';
+      document.body.style.color = '#fff';
+      clearTimeout(holdTimer);
+  
+      if (defeated) return;
+  
+      if (currentLevel === 1) {
+        clickCount++;
+        chatbotTaunt();
+  
+        if (clickCount >= 100) {
+          bsod.style.display = 'block';
+          setTimeout(() => location.reload(), 5000);
+          return;
+        }
+  
+        if (clickCount === 10) messageEl.textContent = "You okay?";
+        else if (clickCount === 25) messageEl.textContent = "Still going?";
+        else if (clickCount === 50) messageEl.textContent = "Why are you like this?";
+        else if (Math.random() < 0.25) {
+          messageEl.textContent = trollMessages[Math.floor(Math.random() * trollMessages.length)];
+        } else {
+          messageEl.textContent = `Attempts: ${clickCount}`;
+        }
+      }
+  
+      // LEVEL 2 LOGIC: Must hold exactly 3 seconds
+      if (currentLevel === 2) {
+        const holdDuration = Date.now() - holdStartTime;
+        if (holdDuration >= 2900 && holdDuration <= 3300) {
+          defeated = true;
+          messageEl.textContent = "You cracked the code. Level complete.";
+          resetButton.style.display = 'inline-block';
+        } else if (holdDuration > 3300) {
+          messageEl.textContent = "Too long. Back to Level 1.";
+          setTimeout(() => resetGame(1), 1500);
+        } else {
+          messageEl.textContent = "Not long enough.";
+        }
+      }
+    });
+  
+    resetButton.addEventListener('click', () => resetGame(currentLevel));
   </script>
+  
 </body>
 </html>
