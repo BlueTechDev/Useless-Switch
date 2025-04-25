@@ -2,233 +2,154 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Switch Trials</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Click Me (If You Dare)</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #111;
-      color: white;
+      font-family: sans-serif;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       height: 100vh;
-      overflow: hidden;
-      transition: background-color 0.6s ease, color 0.6s ease;
+      background-color: #fefefe;
+      user-select: none;
     }
 
-    .container {
-      text-align: center;
-      max-width: 600px;
-    }
-
-    .switch {
-      position: relative;
-      width: 100px;
-      height: 50px;
-      background: #444;
-      border-radius: 25px;
-      margin: 20px auto;
-      cursor: pointer;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-      transition: transform 0.2s;
-    }
-
-    .switch.on {
-      background: #ccc;
-    }
-
-    .switch::before {
-      content: "";
-      position: absolute;
-      top: 5px;
-      left: 5px;
-      width: 40px;
-      height: 40px;
-      background: white;
-      border-radius: 50%;
-      transition: left 0.3s;
-    }
-
-    .switch.on::before {
-      left: 55px;
-    }
-
-    .message {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 1.2rem;
-      opacity: 0.85;
-    }
-
-    .button {
-      display: inline-block;
-      margin: 20px auto;
-      padding: 10px 20px;
-      font-size: 1rem;
-      background-color: #00ffcc;
-      color: #111;
+    #clickBtn {
+      padding: 1em 2em;
+      font-size: 1.5rem;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
+      background-color: #4CAF50;
+      color: white;
       cursor: pointer;
-      box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+      transition: all 0.3s ease;
+      position: relative;
     }
 
-    #chatbot {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #222;
-      color: white;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      max-width: 250px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    #clickBtn.fake {
+      background-color: #f44336;
+      animation: shake 0.2s infinite;
     }
 
-    #bsod {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: #0000aa;
-      color: white;
-      font-family: monospace;
-      font-size: 1.3rem;
-      padding: 30px;
-      display: none;
-      z-index: 9999;
+    #clickBtn.dodge {
+      position: absolute;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+
+    #counter {
+      margin-top: 1em;
+      font-size: 1.2rem;
+    }
+
+    #message {
+      margin-top: 1em;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #ff4444;
+      min-height: 1.5em;
+    }
+
+    #progressBar {
+      margin-top: 1em;
+      width: 80%;
+      height: 20px;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #progress {
+      height: 100%;
+      width: 0%;
+      background: #4CAF50;
+      transition: width 0.5s;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="levelDisplay" style="margin-top:20px;">Level 1</div>
-    <div id="switch1" class="switch"></div>
-    <div id="message" class="message">Go ahead, try it...</div>
-    <button id="resetButton" class="button" style="display:none;">Reset</button>
-  </div>
-
-  <div id="chatbot">👀 Still at it, huh?</div>
-  <div id="bsod">
-    A problem has been detected and your effort has been terminated.<br><br>
-    Attempt count overflow.<br>
-    System will reboot shortly.
-  </div>
+  <button id="clickBtn">Click Me!</button>
+  <div id="counter">Clicks: 0</div>
+  <div id="message"></div>
+  <div id="progressBar"><div id="progress"></div></div>
 
   <script>
-    const switch1 = document.getElementById('switch1');
-    const messageEl = document.getElementById('message');
-    const resetButton = document.getElementById('resetButton');
-    const chatbot = document.getElementById('chatbot');
-    const bsod = document.getElementById('bsod');
-  
-    let defeated = false;
-    let clickCount = 0;
-    let holdStartTime = null;
-    let currentLevel = 1;
-  
-    const chatbotLines = [/* same as before */];
-    const trollMessages = [/* same as before */];
-  
-    function resetGame(targetLevel = 1) {
-      clearTimeout(holdTimer);
-      defeated = false;
-      clickCount = 0;
-      holdStartTime = null;
-      currentLevel = targetLevel;
-      switch1.classList.remove('on');
-      messageEl.textContent = "Go ahead, try it...";
-      resetButton.style.display = 'none';
-      document.body.style.backgroundColor = '#111';
-      document.body.style.color = '#fff';
+    let clicks = 0;
+    const btn = document.getElementById('clickBtn');
+    const counter = document.getElementById('counter');
+    const message = document.getElementById('message');
+    const progress = document.getElementById('progress');
+
+    const trollMessages = [
+      "Oops, not that one!",
+      "You call that a click?",
+      "Try again... maybe not like *that*.",
+      "Almost! So close. Haha no.",
+      "You're getting worse at this.",
+      "Wrong again. How impressive.",
+      "Maybe ask a friend to help?",
+      "LOL. That reset was brutal."
+    ];
+
+    function randomInt(max) {
+      return Math.floor(Math.random() * max);
     }
-  
-    function chatbotTaunt() {
-      const line = chatbotLines[Math.floor(Math.random() * chatbotLines.length)];
-      chatbot.textContent = `🤖 ${line}`;
+
+    function getLevel(clicks) {
+      if (clicks >= 200) return 6;
+      if (clicks >= 150) return 5;
+      if (clicks >= 100) return 4;
+      if (clicks >= 60) return 3;
+      if (clicks >= 30) return 2;
+      return 1;
     }
-  
-    function showRiddle() {
-      const answer = prompt("What came first: the chicken or the egg?");
-      if (!answer) return;
-      if (answer.trim().toLowerCase() === "chicken") {
-        messageEl.textContent = "Correct. Welcome to Level 2.";
-        currentLevel = 2;
-        resetButton.style.display = 'inline-block';
-      } else {
-        messageEl.textContent = "Wrong answer. Try again.";
-        document.body.style.backgroundColor = '#111';
-        document.body.style.color = '#fff';
+
+    function messWithUser() {
+      const level = getLevel(clicks);
+      let msg = '';
+
+      if (level === 2) {
+        btn.classList.add('fake');
+        msg = trollMessages[randomInt(trollMessages.length)];
+      } else if (level === 3) {
+        btn.classList.add('dodge');
+        btn.style.top = `${randomInt(window.innerHeight - 100)}px`;
+        btn.style.left = `${randomInt(window.innerWidth - 100)}px`;
+        msg = "Why's the button moving? Is that fair? Nope!";
+      } else if (level === 4) {
+        msg = "99% done... or is it?";
+        progress.style.width = '99%';
+        setTimeout(() => progress.style.width = '0%', 1500);
+      } else if (level === 5) {
+        msg = "Don't click again. Seriously. (But do.)";
+      } else if (level === 6) {
+        if (Math.random() < 0.25) {
+          clicks = Math.max(0, Math.floor(clicks / 2));
+          msg = trollMessages[7];
+        }
+        if (Math.random() < 0.1) {
+          alert("You Win! Just kidding. Back to work.");
+        }
       }
+
+      message.textContent = msg;
     }
-  
-    // Switch logic
-    switch1.addEventListener('mousedown', () => {
-      if (defeated) return;
-  
-      switch1.classList.add('on');
-      document.body.style.backgroundColor = '#f0f0f0';
-      document.body.style.color = '#111';
-  
-      holdStartTime = Date.now();
-  
-      if (currentLevel === 1) {
-        holdTimer = setTimeout(() => {
-          showRiddle();
-        }, 5000);
-      }
+
+    btn.addEventListener('click', () => {
+      clicks++;
+      counter.textContent = `Clicks: ${clicks}`;
+      progress.style.width = `${Math.min((clicks % 100) + 1, 100)}%`;
+      messWithUser();
     });
-  
-    switch1.addEventListener('mouseup', () => {
-      switch1.classList.remove('on');
-      document.body.style.backgroundColor = '#111';
-      document.body.style.color = '#fff';
-      clearTimeout(holdTimer);
-  
-      if (defeated) return;
-  
-      if (currentLevel === 1) {
-        clickCount++;
-        chatbotTaunt();
-  
-        if (clickCount >= 100) {
-          bsod.style.display = 'block';
-          setTimeout(() => location.reload(), 5000);
-          return;
-        }
-  
-        if (clickCount === 10) messageEl.textContent = "You okay?";
-        else if (clickCount === 25) messageEl.textContent = "Still going?";
-        else if (clickCount === 50) messageEl.textContent = "Why are you like this?";
-        else if (Math.random() < 0.25) {
-          messageEl.textContent = trollMessages[Math.floor(Math.random() * trollMessages.length)];
-        } else {
-          messageEl.textContent = `Attempts: ${clickCount}`;
-        }
-      }
-  
-      // LEVEL 2 LOGIC: Must hold exactly 3 seconds
-      if (currentLevel === 2) {
-        const holdDuration = Date.now() - holdStartTime;
-        if (holdDuration >= 2900 && holdDuration <= 3300) {
-          defeated = true;
-          messageEl.textContent = "You cracked the code. Level complete.";
-          resetButton.style.display = 'inline-block';
-        } else if (holdDuration > 3300) {
-          messageEl.textContent = "Too long. Back to Level 1.";
-          setTimeout(() => resetGame(1), 1500);
-        } else {
-          messageEl.textContent = "Not long enough.";
-        }
-      }
-    });
-  
-    resetButton.addEventListener('click', () => resetGame(currentLevel));
   </script>
-  
 </body>
 </html>
