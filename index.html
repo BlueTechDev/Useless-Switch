@@ -1,11 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>The Switch Trials</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #111;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 600px;
+    }
+
+    .switch {
+      position: relative;
+      width: 100px;
+      height: 50px;
+      background: #444;
+      border-radius: 25px;
+      margin: 20px auto;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      transition: transform 0.2s;
+    }
+
+    .switch.on {
+      background: #ccc;
+    }
+
+    .switch::before {
+      content: "";
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 50%;
+      transition: left 0.3s;
+    }
+
+    .switch.on::before {
+      left: 55px;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 1.2rem;
+      opacity: 0.85;
+    }
+
+    .button {
+      display: inline-block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #00ffcc;
+      color: #111;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+    }
+  </style>
 </head>
 <body>
   <div class="container" id="menu">
@@ -16,10 +85,101 @@
   <div class="container" id="game" style="display:none;">
     <div id="levelDisplay" style="margin-top:20px;">Level 1</div>
     <div id="switch1" class="switch"></div>
-    <div id="message" class="message">Go ahead, try it...</div>
-    <div id="switch1" class="switch"></div>
     <div id="switch2" class="switch" style="display: none;"></div>
+    <div id="message" class="message">Go ahead, try it...</div>
     <button id="resetButton" class="button" style="display:none;">Reset Game</button>
   </div>
+
+  <script>
+    const switch1 = document.getElementById('switch1');
+    const switch2 = document.getElementById('switch2');
+    const messageEl = document.getElementById('message');
+    const resetButton = document.getElementById('resetButton');
+    const levelDisplay = document.getElementById('levelDisplay');
+    const menu = document.getElementById('menu');
+    const game = document.getElementById('game');
+
+    let defeated = false;
+    let holdTimer = null;
+    let level = 1;
+    let correctSwitch = 1;
+
+    function updateLevelDisplay() {
+      levelDisplay.textContent = `Level ${level}`;
+    }
+
+    function resetGame() {
+      clearTimeout(holdTimer);
+      defeated = false;
+      switch1.classList.remove('on');
+      switch2.classList.remove('on');
+      messageEl.textContent = "Go ahead, try it...";
+      resetButton.style.display = 'none';
+
+      if (level === 2) {
+        switch2.style.display = 'block';
+        correctSwitch = Math.random() < 0.5 ? 1 : 2;
+      } else {
+        switch2.style.display = 'none';
+      }
+
+      updateLevelDisplay();
+    }
+
+    function startGame() {
+      menu.style.display = 'none';
+      game.style.display = 'block';
+      resetGame();
+    }
+
+    function handleSwitchPress(switchNumber) {
+      if (defeated) return;
+
+      // === Level 1: Hold to win ===
+      if (level === 1) {
+        holdTimer = setTimeout(() => {
+          defeated = true;
+          messageEl.textContent = "You beat the useless machine. But at what cost?";
+          resetButton.style.display = 'inline-block';
+          level = 2;
+        }, 5000);
+      }
+
+      // === Level 2: One switch is fake ===
+      else if (level === 2) {
+        if (switchNumber !== correctSwitch) {
+          messageEl.textContent = "Wrong switch. Back to Level 1.";
+          setTimeout(() => {
+            level = 1;
+            resetGame();
+          }, 1500);
+        } else {
+          holdTimer = setTimeout(() => {
+            defeated = true;
+            messageEl.textContent = "You outsmarted the decoy!";
+            resetButton.style.display = 'inline-block';
+            level = 3; // Placeholder for next level
+          }, 5000);
+        }
+      }
+    }
+
+    // Switch 1
+    switch1.addEventListener('mousedown', () => switch1.classList.add('on'));
+    switch1.addEventListener('mouseup', () => {
+      switch1.classList.remove('on');
+      handleSwitchPress(1);
+    });
+
+    // Switch 2 (only used in Level 2)
+    switch2.addEventListener('mousedown', () => switch2.classList.add('on'));
+    switch2.addEventListener('mouseup', () => {
+      switch2.classList.remove('on');
+      handleSwitchPress(2);
+    });
+
+    resetButton.addEventListener('click', () => resetGame());
+    updateLevelDisplay();
+  </script>
 </body>
 </html>
