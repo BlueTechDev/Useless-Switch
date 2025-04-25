@@ -74,71 +74,111 @@
       cursor: pointer;
       box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
     }
+
+    #chatbot {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #222;
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      max-width: 250px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+
+    #bsod {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #0000aa;
+      color: white;
+      font-family: monospace;
+      font-size: 1.3rem;
+      padding: 30px;
+      display: none;
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
-  <div class="container" id="menu">
-    <h1>The Switch Trials</h1>
-    <button class="button" onclick="startGame()">New Game</button>
-  </div>
-
-  <div class="container" id="game" style="display:none;">
+  <div class="container">
     <div id="levelDisplay" style="margin-top:20px;">Level 1</div>
     <div id="switch1" class="switch"></div>
     <div id="message" class="message">Go ahead, try it...</div>
     <button id="resetButton" class="button" style="display:none;">Reset</button>
   </div>
 
+  <div id="chatbot">👀 Still at it, huh?</div>
+  <div id="bsod">
+    A problem has been detected and your effort has been terminated.<br><br>
+    Attempt count overflow.<br>
+    System will reboot shortly.
+  </div>
+
   <script>
     const switch1 = document.getElementById('switch1');
     const messageEl = document.getElementById('message');
     const resetButton = document.getElementById('resetButton');
-    const levelDisplay = document.getElementById('levelDisplay');
-    const menu = document.getElementById('menu');
-    const game = document.getElementById('game');
+    const chatbot = document.getElementById('chatbot');
+    const bsod = document.getElementById('bsod');
 
     let defeated = false;
     let holdTimer = null;
-    let attemptCount = 0;
+    let clickCount = 0;
+
+    const chatbotLines = [
+      "Still at it, huh?",
+      "You sure this is a good use of time?",
+      "The switch isn't going to love you back.",
+      "There is no reward.",
+      "Give up. You won't win.",
+      "Click click click... satisfied?",
+      "Just 94 more to go!"
+    ];
 
     const trollMessages = [
       "Almost... not really.",
-      "This button is purely decorative.",
-      "That would’ve worked yesterday.",
+      "That would've worked yesterday.",
       "Try flipping your monitor.",
-      "You just unlocked NOTHING!",
-      "Good job... doing nothing.",
-      "Persistence is pain."
+      "You just unlocked... nothing!",
+      "Still going?"
     ];
-
-    function updateLevelDisplay() {
-      levelDisplay.textContent = `Level 1`;
-    }
 
     function resetGame() {
       clearTimeout(holdTimer);
       defeated = false;
-      attemptCount = 0;
+      clickCount = 0;
       switch1.classList.remove('on');
       messageEl.textContent = "Go ahead, try it...";
       resetButton.style.display = 'none';
     }
 
-    function startGame() {
-      menu.style.display = 'none';
-      game.style.display = 'block';
-      resetGame();
+    function chatbotTaunt() {
+      const line = chatbotLines[Math.floor(Math.random() * chatbotLines.length)];
+      chatbot.textContent = `🤖 ${line}`;
     }
 
-    // Switch behavior (hold to win)
+    function showRiddle() {
+      const answer = prompt("What came first: the chicken or the egg?");
+      if (!answer) return;
+      if (answer.trim().toLowerCase() === "chicken") {
+        defeated = true;
+        messageEl.textContent = "You beat the useless machine. But at what cost?";
+        resetButton.style.display = 'inline-block';
+      } else {
+        messageEl.textContent = "Wrong answer. Try again.";
+      }
+    }
+
     switch1.addEventListener('mousedown', () => {
       if (defeated) return;
       switch1.classList.add('on');
 
       holdTimer = setTimeout(() => {
-        defeated = true;
-        messageEl.textContent = "You beat the useless machine. But at what cost?";
-        resetButton.style.display = 'inline-block';
+        showRiddle();
       }, 5000);
     });
 
@@ -148,28 +188,30 @@
 
       if (defeated) return;
 
-      attemptCount++;
+      clickCount++;
+      chatbotTaunt();
 
-      // Fun milestone messages
-      if (attemptCount === 5) {
-        messageEl.textContent = "Still going?";
-      } else if (attemptCount === 10) {
+      if (clickCount >= 100) {
+        bsod.style.display = 'block';
+        setTimeout(() => location.reload(), 5000);
+        return;
+      }
+
+      // Troll message at some counts
+      if (clickCount === 10) {
         messageEl.textContent = "You okay?";
-      } else if (attemptCount === 25) {
+      } else if (clickCount === 25) {
+        messageEl.textContent = "Still going?";
+      } else if (clickCount === 50) {
         messageEl.textContent = "Why are you like this?";
+      } else if (Math.random() < 0.25) {
+        messageEl.textContent = trollMessages[Math.floor(Math.random() * trollMessages.length)];
       } else {
-        // 25% chance to show random troll
-        if (Math.random() < 0.25) {
-          const msg = trollMessages[Math.floor(Math.random() * trollMessages.length)];
-          messageEl.textContent = msg;
-        } else {
-          messageEl.textContent = `Attempts: ${attemptCount}`;
-        }
+        messageEl.textContent = `Attempts: ${clickCount}`;
       }
     });
 
     resetButton.addEventListener('click', resetGame);
-    updateLevelDisplay();
   </script>
 </body>
 </html>
