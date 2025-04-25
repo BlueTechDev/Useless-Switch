@@ -178,8 +178,10 @@
       handleSwitchPress(2);
     });
 
-    resetButton.addEventListener('click', () => resetGame());
-    updateLevelDisplay();
+    resetButton.addEventListener('click', () => {
+  resetGame();  // This will now respect the current value of "level"
+});
+
   </script>
 </body>
 </html>
